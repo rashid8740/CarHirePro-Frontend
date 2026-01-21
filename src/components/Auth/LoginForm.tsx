@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Mail, Lock, AlertCircle, Eye, EyeOff } from "lucide-react";
-import { api, setAuthToken } from "../../lib/api"; // Make sure path is correct
-import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext"; // Make sure path is correct
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
@@ -10,7 +9,7 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const navigate = useNavigate();
+  const { signIn } = useAuth();
 
   const demoAccounts = [
     { role: "Director", email: "director@carhire.com", password: "password123" },
@@ -25,19 +24,13 @@ export default function LoginForm() {
     setLoading(true);
 
     try {
-      const response = await api.post("/auth/login", { email, password });
-
-      // Save JWT token
-      setAuthToken(response.data.token);
-
-      // Store user info
-      localStorage.setItem("user", JSON.stringify(response.data.user));
-
-      // Redirect to dashboard
-      navigate("/dashboard");
+      const result = await signIn(email, password);
+      if (!result.success) {
+        setError(result.error || "Login failed. Check console.");
+      }
     } catch (err: any) {
       console.error("Login error:", err);
-      setError(err.response?.data?.message || "Login failed. Check console.");
+      setError("Login failed. Check console.");
     } finally {
       setLoading(false);
     }

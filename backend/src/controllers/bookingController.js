@@ -42,6 +42,14 @@ export const createBooking = async (req, res) => {
     if (!vehicleExists)
       return res.status(400).json({ success: false, message: 'Vehicle not found' });
 
+    // Check if client is suspended
+    if (clientExists.status === 'SUSPENDED') {
+      return res.status(403).json({
+        success: false,
+        message: 'Cannot create booking for suspended client. Client account is currently suspended.'
+      });
+    }
+
     const start = new Date(startDate);
     const end = new Date(endDate);
     const today = new Date();
@@ -172,6 +180,14 @@ export const updateBooking = async (req, res) => {
 
     if (!clientExists || !vehicleExists)
       return res.status(400).json({ success: false, message: 'Client or Vehicle not found' });
+
+    // Check if client is suspended
+    if (clientExists.status === 'SUSPENDED') {
+      return res.status(403).json({
+        success: false,
+        message: 'Cannot update booking for suspended client. Client account is currently suspended.'
+      });
+    }
 
     const start = new Date(startDate);
     const end = new Date(endDate);

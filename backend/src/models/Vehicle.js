@@ -33,6 +33,12 @@ const vehicleSchema = new mongoose.Schema(
       uppercase: true,
       match: [/^[A-Z0-9\s-]+$/, 'License plate must contain only letters, numbers, spaces, and hyphens']
     },
+    status: {
+      type: String,
+      enum: ['Available', 'Booked', 'Maintenance'],
+      default: 'Available',
+      trim: true
+    },
     dateOut: { 
       type: Date 
     },

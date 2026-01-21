@@ -3,12 +3,12 @@ import Client from '../models/Client.js';
 // Add new client
 export const addClient = async (req, res) => {
   try {
-    const { fullName, idOrPassport, phone, address, licenseNumber } = req.body;
+    const { fullName, idOrPassport, phone, address, licenseNumber, citizenship } = req.body;
 
-    if (!fullName || !idOrPassport || !phone || !licenseNumber) {
+    if (!fullName || !idOrPassport || !licenseNumber || !citizenship || !phone) {
       return res.status(400).json({
         success: false,
-        message: 'Missing required fields: fullName, idOrPassport, phone, and licenseNumber are required'
+        message: 'Missing required fields: fullName, idOrPassport, licenseNumber, citizenship, and phone are required'
       });
     }
 
@@ -38,7 +38,8 @@ export const addClient = async (req, res) => {
       idOrPassport: idOrPassport.toUpperCase(),
       phone: phone.trim(),
       address: address ? address.trim() : undefined,
-      licenseNumber: licenseNumber.toUpperCase()
+      licenseNumber: licenseNumber.toUpperCase(),
+      citizenship: citizenship.trim()
     });
 
     return res.status(201).json({
@@ -60,7 +61,7 @@ export const addClient = async (req, res) => {
 export const getAllClients = async (req, res) => {
   try {
     const clients = await Client.find({})
-      .select('_id fullName idOrPassport phone address licenseNumber createdAt')
+      .select('_id fullName idOrPassport phone address licenseNumber citizenship status createdAt')
       .sort({ createdAt: -1 })
       .lean();
 
@@ -110,7 +111,7 @@ export const getClientById = async (req, res) => {
 export const updateClient = async (req, res) => {
   try {
     const { id } = req.params;
-    const { fullName, idOrPassport, phone, address, licenseNumber } = req.body;
+    const { fullName, idOrPassport, phone, address, licenseNumber, citizenship } = req.body;
 
     const client = await Client.findById(id);
     if (!client) {
@@ -138,6 +139,7 @@ export const updateClient = async (req, res) => {
     client.phone = phone ?? client.phone;
     client.address = address ?? client.address;
     client.licenseNumber = licenseNumber ? licenseNumber.toUpperCase() : client.licenseNumber;
+    client.citizenship = citizenship ?? client.citizenship;
 
     await client.save();
 
@@ -164,5 +166,81 @@ export const deleteClient = async (req, res) => {
     res.json({ success: true, message: 'Client deleted successfully' });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Failed to delete client', error: error.message });
+  }
+};
+
+// Update client status
+export const updateClientStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    // Validate status
+    if (!['ACTIVE', 'SUSPENDED'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status. Status must be either ACTIVE or SUSPENDED'
+      });
+    }
+
+    const client = await Client.findById(id);
+    if (!client) {
+      return res.status(404).json({
+        success: false,
+        message: 'Client not found'
+      });
+    }
+
+    // Update status
+    client.status = status;
+    await client.save();
+
+    return res.status(200).json({
+      success: true,
+      message: `Client status updated to ${status} successfully`,
+      data: client
+    });
+
+  } catch (error) {
+    console.error('Error updating client status:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to update client status. Please try again.'
+    });
+  }
+};
+
+// Get clients by status
+export const getClientsByStatus = async (req, res) => {
+  try {
+    const { status } = req.query;
+
+    // Validate status parameter
+    if (status && !['ACTIVE', 'SUSPENDED'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status filter. Use ACTIVE or SUSPENDED'
+      });
+    }
+
+    const filter = status ? { status } : {};
+    
+    const clients = await Client.find(filter)
+      .select('_id fullName idOrPassport phone address licenseNumber citizenship status createdAt')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return res.status(200).json({
+      success: true,
+      count: clients.length,
+      data: clients
+    });
+
+  } catch (error) {
+    console.error('Error fetching clients by status:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch clients. Please try again.'
+    });
   }
 };

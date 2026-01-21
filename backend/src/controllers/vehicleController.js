@@ -9,6 +9,7 @@ export const addVehicle = async (req, res) => {
       year, 
       color, 
       licensePlate, 
+      status,
       dateOut, 
       timeOut, 
       dateIn, 
@@ -44,12 +45,20 @@ export const addVehicle = async (req, res) => {
       });
     }
 
+    if (status && !['Available', 'Booked', 'Maintenance'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status. Must be one of: Available, Booked, Maintenance'
+      });
+    }
+
     const vehicle = await Vehicle.create({
       make: make.trim(),
       model: model.trim(),
       year: parseInt(year),
       color: color ? color.trim() : undefined,
       licensePlate: licensePlate.toUpperCase(),
+      status: status ? status.trim() : undefined,
       dateOut: dateOut ? new Date(dateOut) : undefined,
       timeOut: timeOut ? timeOut.trim() : undefined,
       dateIn: dateIn ? new Date(dateIn) : undefined,
@@ -67,6 +76,7 @@ export const addVehicle = async (req, res) => {
         year: vehicle.year,
         color: vehicle.color,
         licensePlate: vehicle.licensePlate,
+        status: vehicle.status,
         dateOut: vehicle.dateOut,
         timeOut: vehicle.timeOut,
         dateIn: vehicle.dateIn,
@@ -92,11 +102,51 @@ export const addVehicle = async (req, res) => {
   }
 };
 
+// Update vehicle status only
+export const updateVehicleStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!status || !['Available', 'Booked', 'Maintenance'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status. Must be one of: Available, Booked, Maintenance'
+      });
+    }
+
+    const vehicle = await Vehicle.findByIdAndUpdate(
+      id,
+      { status: status.trim() },
+      { new: true, runValidators: true }
+    ).lean();
+
+    if (!vehicle) {
+      return res.status(404).json({
+        success: false,
+        message: 'Vehicle not found'
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Vehicle status updated successfully',
+      data: vehicle
+    });
+  } catch (error) {
+    console.error('Error updating vehicle status:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to update vehicle status. Please try again.'
+    });
+  }
+};
+
 // Fetch all vehicles
 export const getAllVehicles = async (req, res) => {
   try {
     const vehicles = await Vehicle.find({})
-      .select('_id make model year color licensePlate dateOut timeOut dateIn timeIn dailyRate createdAt')
+      .select('_id make model year color licensePlate status dateOut timeOut dateIn timeIn dailyRate createdAt')
       .sort({ createdAt: -1 })
       .lean();
 

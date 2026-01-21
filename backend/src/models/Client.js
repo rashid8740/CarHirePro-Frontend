@@ -27,12 +27,23 @@ const clientSchema = new mongoose.Schema(
       trim: true,
       maxlength: [200, 'Address cannot exceed 200 characters']
     },
+    citizenship: { 
+      type: String, 
+      required: [true, 'Citizenship is required'],
+      trim: true
+    },
     licenseNumber: { 
       type: String, 
       required: [true, 'License number is required'],
       unique: true,
       trim: true,
       uppercase: true
+    },
+    status: { 
+      type: String, 
+      enum: ['ACTIVE', 'SUSPENDED'], 
+      default: 'ACTIVE',
+      required: true
     }
   },
   { 

@@ -7,8 +7,12 @@ export const PERMISSIONS = {
       actions: ['view', 'export']
     },
     {
+      module: 'quick-actions',
+      actions: ['view', 'create', 'update', 'send_reminders', 'generate_invoices']
+    },
+    {
       module: 'clients',
-      actions: ['view', 'create', 'edit', 'delete', 'suspend', 'export']
+      actions: ['view', 'create', 'edit', 'delete', 'suspend', 'activate', 'export']
     },
     {
       module: 'vehicles',
@@ -51,8 +55,12 @@ export const PERMISSIONS = {
       actions: ['view']
     },
     {
+      module: 'quick-actions',
+      actions: ['view', 'create', 'update', 'send_reminders']
+    },
+    {
       module: 'clients',
-      actions: ['view', 'create', 'edit', 'suspend']
+      actions: ['view', 'create', 'edit', 'suspend', 'activate']
     },
     {
       module: 'vehicles',
@@ -83,6 +91,10 @@ export const PERMISSIONS = {
       actions: ['view']
     },
     {
+      module: 'quick-actions',
+      actions: ['view']
+    },
+    {
       module: 'vehicles',
       actions: ['view'] // Only their own vehicles
     },
@@ -105,6 +117,10 @@ export const PERMISSIONS = {
     {
       module: 'dashboard',
       actions: ['view']
+    },
+    {
+      module: 'quick-actions',
+      actions: ['view', 'create']
     },
     {
       module: 'vehicles',

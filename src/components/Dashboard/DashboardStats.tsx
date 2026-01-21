@@ -1,7 +1,6 @@
-import React from 'react';
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import { TrendingUp, TrendingDown, Users, Car, Calendar, DollarSign } from 'lucide-react';
 
-interface StatItem {
+export interface StatItem {
   title: string;
   value: string;
   subtitle: string;
@@ -11,9 +10,10 @@ interface StatItem {
 
 interface DashboardStatsProps {
   stats: StatItem[];
+  loading?: boolean;
 }
 
-export default function DashboardStats({ stats }: DashboardStatsProps) {
+export default function DashboardStats({ stats, loading = false }: DashboardStatsProps) {
   const getColorClasses = (color: StatItem['color']) => {
     switch (color) {
       case 'blue':
@@ -29,26 +29,62 @@ export default function DashboardStats({ stats }: DashboardStatsProps) {
     }
   };
 
+  const getStatIcon = (title: string) => {
+    switch (title.toLowerCase()) {
+      case 'total clients':
+        return Users;
+      case 'fleet status':
+        return Car;
+      case 'active bookings':
+        return Calendar;
+      case 'monthly revenue':
+        return DollarSign;
+      default:
+        return TrendingUp;
+    }
+  };
+
+  const getTrend = (trend: string) => {
+    if (!trend) return null;
+    const isNegative = trend.trim().startsWith('-');
+    const Icon = isNegative ? TrendingDown : TrendingUp;
+    const color = isNegative ? 'text-red-600' : 'text-green-600';
+    return (
+      <div className={`flex items-center text-sm ${color}`}>
+        <Icon className="w-4 h-4 mr-1" />
+        {trend}
+      </div>
+    );
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {stats.map((stat, index) => (
-        <div key={index} className="bg-white rounded-lg shadow-sm border p-6 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-4">
-            <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${getColorClasses(stat.color)}`}>
-              <div className="w-6 h-6 rounded-full bg-current opacity-20"></div>
+      {stats.map((stat, index) => {
+        const Icon = getStatIcon(stat.title);
+        return (
+          <div key={index} className="bg-white rounded-lg shadow-sm border p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-4">
+              <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${getColorClasses(stat.color)}`}>
+                <Icon className="w-6 h-6" />
+              </div>
+              {loading ? (
+                <div className="h-4 w-14 bg-gray-100 rounded" />
+              ) : (
+                getTrend(stat.trend)
+              )}
             </div>
-            <div className="flex items-center text-sm text-green-600">
-              <TrendingUp className="w-4 h-4 mr-1" />
-              {stat.trend}
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-1">
+                {loading ? <span className="inline-block h-7 w-24 bg-gray-100 rounded" /> : stat.value}
+              </h3>
+              <p className="text-sm font-medium text-gray-900 mb-1">{stat.title}</p>
+              <p className="text-xs text-gray-500">
+                {loading ? <span className="inline-block h-4 w-36 bg-gray-100 rounded" /> : stat.subtitle}
+              </p>
             </div>
           </div>
-          <div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</h3>
-            <p className="text-sm font-medium text-gray-900 mb-1">{stat.title}</p>
-            <p className="text-xs text-gray-500">{stat.subtitle}</p>
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

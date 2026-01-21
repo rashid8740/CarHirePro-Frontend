@@ -3,6 +3,7 @@ import {
   addVehicle, 
   getAllVehicles, 
   getVehicleById, 
+  updateVehicleStatus,
   updateVehicle, 
   deleteVehicle 
 } from '../controllers/vehicleController.js';
@@ -17,6 +18,9 @@ router.get('/', getAllVehicles);
 
 // GET /api/vehicles/:id - Get single vehicle by ID
 router.get('/:id', getVehicleById);
+
+// PATCH /api/vehicles/:id/status - Update only vehicle status
+router.patch('/:id/status', updateVehicleStatus);
 
 // PUT /api/vehicles/:id - Update vehicle
 router.put('/:id', updateVehicle);

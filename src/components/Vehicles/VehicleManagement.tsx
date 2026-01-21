@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Car, Edit, Trash2, X, AlertCircle, Clock } from 'lucide-react';
+import { Plus, Search, Car, Edit, Trash2, X, AlertCircle, Clock, RefreshCw } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { hasPermission } from '../../lib/permissions';
@@ -12,13 +12,17 @@ interface Vehicle {
   year: number;
   color?: string;
   licensePlate: string;
+  dailyRate: number;
   dateOut?: string;
   timeOut?: string;
   dateIn?: string;
   timeIn?: string;
-  dailyRate: number;
   createdAt: string;
+  status?: 'Available' | 'Booked' | 'Maintenance';
 }
+
+const VEHICLE_STATUSES = ['Available', 'Booked', 'Maintenance'] as const;
+type VehicleStatus = typeof VEHICLE_STATUSES[number];
 
 export default function VehicleManagement() {
   const { user } = useAuth();
@@ -31,6 +35,9 @@ export default function VehicleManagement() {
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+
+  // New: State for tracking which vehicle is updating status, and the new status being applied
+  const [statusLoadingId, setStatusLoadingId] = useState<string | null>(null);
 
   // Fetch vehicles from backend
   const fetchVehicles = async () => {
@@ -47,6 +54,18 @@ export default function VehicleManagement() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const formatDate = (value?: string) => {
+    if (!value) return 'N/A';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return 'N/A';
+    return d.toLocaleDateString();
+  };
+
+  const formatTime = (value?: string) => {
+    if (!value) return 'N/A';
+    return value;
   };
 
   useEffect(() => {
@@ -93,6 +112,29 @@ export default function VehicleManagement() {
     setShowEditModal(false);
     setSelectedVehicle(null);
     fetchVehicles();
+  };
+
+  // NEW: Function to update a vehicle's status
+  const handleChangeVehicleStatus = async (vehicle: Vehicle, newStatus: VehicleStatus) => {
+    setStatusLoadingId(vehicle._id);
+    try {
+      const response = await api.patch(`/vehicles/${vehicle._id}/status`, { status: newStatus });
+      if (response.data.success) {
+        setVehicles(prev =>
+          prev.map(v =>
+            v._id === vehicle._id
+              ? { ...v, status: newStatus }
+              : v
+          )
+        );
+      } else {
+        setError(response.data?.message || 'Failed to update vehicle status');
+      }
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Failed to update vehicle status.');
+    } finally {
+      setStatusLoadingId(null);
+    }
   };
 
   if (loading) {
@@ -224,6 +266,10 @@ export default function VehicleManagement() {
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vehicle</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Out</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time Out</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date In</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time In</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Daily Rate</th>
                 <th scope="col" className="relative px-6 py-3">
                   <span className="sr-only">Actions</span>
@@ -252,13 +298,71 @@ export default function VehicleManagement() {
                       <div className="text-sm text-gray-500">Year: {vehicle.year}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium shadow-sm ${
-                        vehicle.dateOut && !vehicle.dateIn
-                          ? 'bg-blue-100 text-blue-800 border border-blue-200'
-                          : 'bg-green-100 text-green-800 border border-green-200'
-                      }`}>
-                        {vehicle.dateOut && !vehicle.dateIn ? 'Out' : 'Available'}
-                      </span>
+
+                      {/* --- Status display with status change dropdown --- */}
+                      <div className="flex items-center space-x-2">
+                        <span
+                          className={`px-2.5 py-0.5 rounded-full text-xs font-medium shadow-sm border
+                            ${
+                              vehicle.status === 'Available'
+                                ? 'bg-green-100 text-green-800 border-green-200'
+                                : vehicle.status === 'Booked'
+                                ? 'bg-blue-100 text-blue-800 border-blue-200'
+                                : 'bg-yellow-100 text-yellow-700 border-yellow-200'
+                            }`
+                          }
+                        >
+                          {vehicle.status || 'Available'}
+                        </span>
+                        <PermissionGuard module="vehicles" action="update">
+                          <select
+                            className={`text-xs rounded border-gray-300 py-0.5 pl-1 pr-8 focus:ring-2 focus:ring-blue-200
+                            ${statusLoadingId === vehicle._id ? 'opacity-50 cursor-wait' : 'cursor-pointer'}
+                            `}
+                            value={vehicle.status || 'Available'}
+                            onChange={e => handleChangeVehicleStatus(vehicle, e.target.value as VehicleStatus)}
+                            disabled={statusLoadingId === vehicle._id}
+                            aria-label="Change vehicle status"
+                          >
+                            {VEHICLE_STATUSES.map(status => (
+                              <option key={status} value={status}>{status}</option>
+                            ))}
+                          </select>
+                        </PermissionGuard>
+                        {statusLoadingId === vehicle._id && (
+                          <RefreshCw className="h-4 w-4 text-blue-400 animate-spin" />
+                        )}
+                      </div>
+                      {/* --- End status display --- */}
+
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {vehicle.dateOut ? (
+                        formatDate(vehicle.dateOut)
+                      ) : (
+                        <span className="text-gray-400 italic">N/A</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {vehicle.timeOut ? (
+                        formatTime(vehicle.timeOut)
+                      ) : (
+                        <span className="text-gray-400 italic">N/A</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {vehicle.dateIn ? (
+                        formatDate(vehicle.dateIn)
+                      ) : (
+                        <span className="text-gray-400 italic">N/A</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {vehicle.timeIn ? (
+                        formatTime(vehicle.timeIn)
+                      ) : (
+                        <span className="text-gray-400 italic">N/A</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       KSH {vehicle.dailyRate.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -336,11 +440,12 @@ function AddVehicleForm({
     dateIn: '',
     timeIn: '',
     dailyRate: 0,
+    status: 'Available' as VehicleStatus, // Added status default for Add
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -576,6 +681,27 @@ function AddVehicleForm({
               </div>
             </div>
 
+            {/* NEW: Status select */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
+                  Status
+                </label>
+                <select
+                  id="status"
+                  name="status"
+                  value={formData.status}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  {VEHICLE_STATUSES.map((status) => (
+                    <option key={status} value={status}>{status}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
             <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
               <button
                 type="button"
@@ -623,11 +749,12 @@ function EditVehicleForm({
     dateIn: vehicle.dateIn || '',
     timeIn: vehicle.timeIn || '',
     dailyRate: vehicle.dailyRate,
+    status: vehicle.status || 'Available', // include status for edits
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -863,6 +990,27 @@ function EditVehicleForm({
               </div>
             </div>
 
+            {/* NEW: Status select */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
+                  Status
+                </label>
+                <select
+                  id="status"
+                  name="status"
+                  value={formData.status}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  required
+                >
+                  {VEHICLE_STATUSES.map((status) => (
+                    <option key={status} value={status}>{status}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
             <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
               <button
                 type="button"
@@ -922,6 +1070,10 @@ function VehicleDetailsModal({ vehicle, onClose }: { vehicle: Vehicle; onClose: 
             </div>
 
             <div className="space-y-3">
+              <div className="flex items-start">
+                <span className="text-gray-400 text-sm font-medium mr-2 w-20">Status:</span>
+                <span className="text-gray-600">{vehicle.status || 'Available'}</span>
+              </div>
               <div className="flex items-start">
                 <span className="text-gray-400 text-sm font-medium mr-2 w-20">Color:</span>
                 <span className="text-gray-600">{vehicle.color || <span className="italic text-gray-400">N/A</span>}</span>

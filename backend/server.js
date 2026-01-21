@@ -11,6 +11,8 @@ import carRoutes from './src/routes/carRoutes.js';
 import clientRoutes from './src/routes/clientRoutes.js';
 import vehicleRoutes from './src/routes/vehicleRoutes.js';
 import bookingRoutes from './src/routes/bookingRoutes.js';
+import analyticsRoutes from './src/routes/analyticsRoutes.js';
+import quickActionsRoutes from './src/routes/quickActionsRoutes.js';
 
 // Connect to MongoDB
 connectDB(); // uses MONGO_URI from .env
@@ -41,6 +43,8 @@ app.use('/api/cars', carRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/vehicles', vehicleRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/quick-actions', quickActionsRoutes);
 
 // Serve frontend in production
 const __dirname = path.resolve();

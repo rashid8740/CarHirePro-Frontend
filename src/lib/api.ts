@@ -1,4 +1,4 @@
-import axios, { AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from "axios";
+import axios, { AxiosResponse, InternalAxiosRequestConfig } from "axios";
 
 // Base URL: DEV = localhost, PROD = VITE_API_URL from environment
 const baseURL: string = import.meta.env.DEV
@@ -39,7 +39,9 @@ api.interceptors.response.use(
       if (status === 401) {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
-        window.location.href = "/login";
+        localStorage.removeItem("car-hire-token");
+        localStorage.removeItem("car-hire-user");
+        window.location.href = "/";
       } else if (status === 403) {
         console.warn("Access denied: insufficient permissions");
         alert("Access denied: insufficient permissions");

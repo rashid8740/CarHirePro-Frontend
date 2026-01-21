@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Phone, MapPin, Edit, Trash2, X, AlertCircle, CreditCard } from 'lucide-react';
+import { Plus, Search, Phone, MapPin, Edit, Trash2, X, AlertCircle, CreditCard, UserX, UserCheck } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { hasPermission } from '../../lib/permissions';
@@ -13,6 +13,7 @@ interface Client {
   phone: string;
   address?: string;
   licenseNumber: string;
+  status: 'ACTIVE' | 'SUSPENDED';
   createdAt: string;
 }
 
@@ -182,6 +183,7 @@ export default function ClientManagement() {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [statusUpdating, setStatusUpdating] = useState<string | null>(null);
 
   // Fetch clients from backend
   const fetchClients = async () => {
@@ -205,9 +207,11 @@ export default function ClientManagement() {
   }, []);
 
   const filteredClients = clients.filter(client => {
-    const matchesSearch = client.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      client.idOrPassport.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      client.phone.includes(searchTerm);
+    const matchesSearch = (client.fullName && client.fullName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (client.idOrPassport && client.idOrPassport.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (client.phone && client.phone.includes(searchTerm)) ||
+      (client.address && client.address.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (client.licenseNumber && client.licenseNumber.toLowerCase().includes(searchTerm.toLowerCase()));
     return matchesSearch;
   });
 
@@ -244,6 +248,30 @@ export default function ClientManagement() {
     setClients((prev) =>
       prev.map((c) => (c._id === updated._id ? { ...updated, createdAt: c.createdAt } : c))
     );
+  };
+
+  const handleStatusChange = async (clientId: string, newStatus: 'ACTIVE' | 'SUSPENDED') => {
+    try {
+      setStatusUpdating(clientId);
+      const response = await api.put(`/clients/${clientId}/status`, { status: newStatus });
+      
+      if (response.data.success) {
+        setClients(prev => 
+          prev.map(client => 
+            client._id === clientId 
+              ? { ...client, status: newStatus }
+              : client
+          )
+        );
+        setError('');
+      } else {
+        setError(response.data.message || 'Failed to update client status');
+      }
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Failed to update client status');
+    } finally {
+      setStatusUpdating(null);
+    }
   };
 
   if (loading) {
@@ -323,6 +351,16 @@ export default function ClientManagement() {
                   <div className="flex items-start">
                     <span className="text-gray-400 text-sm font-medium mr-2">License:</span>
                     <span className="text-gray-600">{selectedClient.licenseNumber}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-gray-400 text-sm font-medium mr-2">Status:</span>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      selectedClient.status === 'ACTIVE' 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {selectedClient.status}
+                    </span>
                   </div>
                 </div>
 
@@ -445,6 +483,7 @@ export default function ClientManagement() {
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID/Passport</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">License</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
                 <th scope="col" className="relative px-6 py-3">
                   <span className="sr-only">Actions</span>
@@ -478,10 +517,19 @@ export default function ClientManagement() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {client.licenseNumber}
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      client.status === 'ACTIVE' 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {client.status}
+                    </span>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(client.createdAt).toLocaleDateString()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex flex-row gap-2 justify-end" style={{minWidth:120}}>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex flex-row gap-2 justify-end" style={{minWidth:200}}>
                     <button
                       onClick={() => {
                         setSelectedClient(client);
@@ -500,6 +548,31 @@ export default function ClientManagement() {
                     >
                       <Edit className="h-4 w-4" />
                     </button>
+                    {client.status === 'ACTIVE' ? (
+                      <PermissionGuard module="clients" action="suspend">
+                        <button
+                          onClick={() => handleStatusChange(client._id, 'SUSPENDED')}
+                          disabled={statusUpdating === client._id}
+                          className="text-orange-600 hover:bg-orange-50 rounded transition-colors p-1 disabled:opacity-50"
+                          title="Suspend client"
+                          aria-label="Suspend"
+                        >
+                          <UserX className="h-4 w-4" />
+                        </button>
+                      </PermissionGuard>
+                    ) : (
+                      <PermissionGuard module="clients" action="activate">
+                        <button
+                          onClick={() => handleStatusChange(client._id, 'ACTIVE')}
+                          disabled={statusUpdating === client._id}
+                          className="text-green-600 hover:bg-green-50 rounded transition-colors p-1 disabled:opacity-50"
+                          title="Activate client"
+                          aria-label="Activate"
+                        >
+                          <UserCheck className="h-4 w-4" />
+                        </button>
+                      </PermissionGuard>
+                    )}
                     <button
                       onClick={() => handleDeleteClick(client)}
                       className="text-red-600 hover:bg-red-50 rounded transition-colors p-1"

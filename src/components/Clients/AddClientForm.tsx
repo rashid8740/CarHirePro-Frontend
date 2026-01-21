@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Phone, MapPin, CreditCard, Save, X, AlertCircle } from 'lucide-react';
+import { User, Phone, MapPin, CreditCard, Save, X, AlertCircle, Globe } from 'lucide-react';
 import { api } from '../../lib/api';
 
 export default function AddClientForm({ onClose, onClientAdded }: { onClose: () => void; onClientAdded?: () => void }) {
@@ -9,9 +9,10 @@ export default function AddClientForm({ onClose, onClientAdded }: { onClose: () 
   const [formData, setFormData] = useState({
     fullName: '',
     idOrPassport: '',
-    phone: '',
+    licenseNumber: '',
+    citizenship: '',
     address: '',
-    licenseNumber: ''
+    phone: ''
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -28,7 +29,7 @@ export default function AddClientForm({ onClose, onClientAdded }: { onClose: () 
     setLoading(true);
     
     // Basic validation
-    if (!formData.fullName || !formData.phone || !formData.idOrPassport || !formData.licenseNumber) {
+    if (!formData.fullName || !formData.idOrPassport || !formData.licenseNumber || !formData.citizenship || !formData.phone) {
       setError('Please fill in all required fields');
       setLoading(false);
       return;
@@ -105,31 +106,9 @@ export default function AddClientForm({ onClose, onClientAdded }: { onClose: () 
               </div>
             </div>
 
-
-            <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-                Phone *
-              </label>
-              <div className="relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Phone className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md h-10"
-                  placeholder="+1234567890"
-                  required
-                />
-              </div>
-            </div>
-
             <div>
               <label htmlFor="idOrPassport" className="block text-sm font-medium text-gray-700 mb-1">
-                ID/Passport *
+                ID/Passport No *
               </label>
               <div className="relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -150,7 +129,7 @@ export default function AddClientForm({ onClose, onClientAdded }: { onClose: () 
 
             <div>
               <label htmlFor="licenseNumber" className="block text-sm font-medium text-gray-700 mb-1">
-                License Number *
+                License No *
               </label>
               <div className="relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -170,8 +149,29 @@ export default function AddClientForm({ onClose, onClientAdded }: { onClose: () 
             </div>
 
             <div>
+              <label htmlFor="citizenship" className="block text-sm font-medium text-gray-700 mb-1">
+                Citizenship *
+              </label>
+              <div className="relative rounded-md shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Globe className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  id="citizenship"
+                  name="citizenship"
+                  value={formData.citizenship}
+                  onChange={handleChange}
+                  className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md h-10"
+                  placeholder="e.g., Kenyan, American"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
               <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
-                Address
+                Address (optional)
               </label>
               <div className="relative rounded-md shadow-sm">
                 <div className="absolute top-3 left-0 pl-3 flex items-start pointer-events-none">
@@ -185,6 +185,27 @@ export default function AddClientForm({ onClose, onClientAdded }: { onClose: () 
                   rows={3}
                   className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
                   placeholder="123 Main St, City, Country"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+                Telephone No *
+              </label>
+              <div className="relative rounded-md shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Phone className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md h-10"
+                  placeholder="+1234567890"
+                  required
                 />
               </div>
             </div>
