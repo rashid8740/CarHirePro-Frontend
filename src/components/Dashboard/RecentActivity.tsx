@@ -1,4 +1,4 @@
-import { Clock, Car, User, DollarSign, AlertCircle } from 'lucide-react';
+import { Clock, Car, User, AlertCircle } from 'lucide-react';
 
 interface Vehicle {
   _id: string;
