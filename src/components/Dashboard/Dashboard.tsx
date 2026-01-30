@@ -147,19 +147,19 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
             Welcome back, {user?.name || user?.email}
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-sm sm:text-base text-gray-600 mt-1">
             Here's what's happening with your car hire business today.
           </p>
         </div>
-        <div className="text-right">
-          <p className="text-sm text-gray-500">Today</p>
-          <p className="text-lg font-semibold text-gray-900">
+        <div className="text-left sm:text-right">
+          <p className="text-xs sm:text-sm text-gray-500">Today</p>
+          <p className="text-sm sm:text-lg font-semibold text-gray-900">
             {new Date().toLocaleDateString('en-US', { 
               weekday: 'long', 
               year: 'numeric', 
@@ -171,14 +171,14 @@ export default function Dashboard() {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-md p-4 text-sm text-red-700">
+        <div className="bg-red-50 border border-red-200 rounded-md p-3 sm:p-4 text-xs sm:text-sm text-red-700">
           {error}
         </div>
       )}
 
       <DashboardStats stats={stats} loading={loading} />
       
-      <QuickActions className="bg-white rounded-lg shadow-sm border border-gray-200 p-6" />
+      <QuickActions className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6" />
       
       <RecentActivity bookings={bookings} clients={clients} vehicles={vehicles} loading={loading} />
     </div>

@@ -58,14 +58,14 @@ export default function DashboardStats({ stats, loading = false }: DashboardStat
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
       {stats.map((stat, index) => {
         const Icon = getStatIcon(stat.title);
         return (
-          <div key={index} className="bg-white rounded-lg shadow-sm border p-6 hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${getColorClasses(stat.color)}`}>
-                <Icon className="w-6 h-6" />
+          <div key={index} className="bg-white rounded-lg shadow-sm border p-4 sm:p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center ${getColorClasses(stat.color)}`}>
+                <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
               {loading ? (
                 <div className="h-4 w-14 bg-gray-100 rounded" />
@@ -74,11 +74,11 @@ export default function DashboardStats({ stats, loading = false }: DashboardStat
               )}
             </div>
             <div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-1">
+              <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1 break-words">
                 {loading ? <span className="inline-block h-7 w-24 bg-gray-100 rounded" /> : stat.value}
               </h3>
-              <p className="text-sm font-medium text-gray-900 mb-1">{stat.title}</p>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs sm:text-sm font-medium text-gray-900 mb-1">{stat.title}</p>
+              <p className="text-xs text-gray-500 break-words">
                 {loading ? <span className="inline-block h-4 w-36 bg-gray-100 rounded" /> : stat.subtitle}
               </p>
             </div>

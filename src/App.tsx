@@ -7,12 +7,13 @@ import VehicleManagement from './components/Vehicles/VehicleManagement';
 import BookingManagement from './components/Bookings/BookingManagement';
 import PermissionGuard from './components/Layout/PermissionGuard';
 import { hasPermission, getUserModules } from './lib/permissions';
-import { Car, Users, Calendar, BarChart3, Settings, LogOut } from 'lucide-react';
+import { Car, Users, Calendar, BarChart3, Settings, LogOut, Menu, X } from 'lucide-react';
 import Reports from './components/Reports/Reports';
 
 function AppContent() {
   const { user, signOut } = useAuth();
   const [currentView, setCurrentView] = React.useState('dashboard');
+  const [sidebarOpen, setSidebarOpen] = React.useState(false);
 
   if (!user) {
     return (
@@ -97,68 +98,93 @@ function AppContent() {
 
   return (
     <div className="flex h-screen bg-gray-100">
+      {/* Mobile Menu Button */}
+      <button
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-lg"
+      >
+        {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+      </button>
+
+      {/* Sidebar Overlay (Mobile) */}
+      {sidebarOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <div className="w-64 bg-white shadow-lg">
-        <div className="p-4 border-b bg-white">
-          <div className="flex flex-col items-center space-y-2">
-            <div className="w-full flex justify-center">
-              <img 
-                src="/img/logo.jpg" 
-                alt="CarHire Pro Logo" 
-                className="h-20 w-auto object-contain"
-              />
-            </div>
-            <div className="text-center">
-              <h1 className="text-2xl font-bold text-gray-900">CarHire Pro</h1>
-              <p className="text-sm text-gray-600 font-medium">Management System</p>
-            </div>
-          </div>
-        </div>
-
-        <nav className="mt-6">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <button
-                key={item.id}
-                onClick={() => setCurrentView(item.id)}
-                className={`w-full flex items-center px-6 py-3 text-left hover:bg-blue-50 transition-colors ${
-                  currentView === item.id
-                    ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600'
-                    : 'text-gray-700'
-                }`}
-              >
-                <Icon className="w-5 h-5 mr-3" />
-                {item.label}
-              </button>
-            );
-          })}
-        </nav>
-
-        <div className="absolute bottom-0 w-64 p-6 border-t">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-              <span className="text-sm font-medium text-gray-700">
-                {user.email?.charAt(0).toUpperCase()}
-              </span>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-900">{user.email}</p>
-              <p className="text-xs text-gray-500 capitalize">{user.role}</p>
+      <div
+        className={`fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        }`}
+      >
+        <div className="flex flex-col h-full">
+          <div className="p-4 border-b bg-white">
+            <div className="flex flex-col items-center space-y-2">
+              <div className="w-full flex justify-center">
+                <img 
+                  src="/img/logo.jpg" 
+                  alt="CarHire Pro Logo" 
+                  className="h-16 sm:h-20 w-auto object-contain"
+                />
+              </div>
+              <div className="text-center">
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">CarHire Pro</h1>
+                <p className="text-xs sm:text-sm text-gray-600 font-medium">Management System</p>
+              </div>
             </div>
           </div>
-          <button
-            onClick={signOut}
-            className="w-full flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
-          >
-            <LogOut className="w-4 h-4 mr-2" />
-            Sign Out
-          </button>
+
+          <nav className="mt-6 flex-1 overflow-y-auto">
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setCurrentView(item.id);
+                    setSidebarOpen(false);
+                  }}
+                  className={`w-full flex items-center px-6 py-3 text-left hover:bg-blue-50 transition-colors ${
+                    currentView === item.id
+                      ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600'
+                      : 'text-gray-700'
+                  }`}
+                >
+                  <Icon className="w-5 h-5 mr-3 flex-shrink-0" />
+                  <span className="text-sm sm:text-base">{item.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+
+          <div className="p-4 sm:p-6 border-t bg-white">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
+                <span className="text-sm font-medium text-gray-700">
+                  {user.email?.charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-900 truncate">{user.email}</p>
+                <p className="text-xs text-gray-500 capitalize">{user.role}</p>
+              </div>
+            </div>
+            <button
+              onClick={signOut}
+              className="w-full flex items-center justify-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Sign Out
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto pt-16 lg:pt-0">
         {renderContent()}
       </div>
     </div>
