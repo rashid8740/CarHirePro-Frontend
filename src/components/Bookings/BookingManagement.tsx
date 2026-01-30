@@ -219,17 +219,17 @@ const BookingManagement: React.FC = () => {
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Booking Management</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">Booking Management</h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">
             Manage, track, and monitor your bookings efficiently in real-time.
           </p>
         </div>
         <PermissionGuard module="bookings" action="create">
           <button
             onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all"
+            className="flex items-center justify-center w-full sm:w-auto gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-sm sm:text-base"
           >
             <Plus className="w-4 h-4" />
             Add Booking
@@ -271,8 +271,8 @@ const BookingManagement: React.FC = () => {
         </select>
       </div>
 
-      {/* Bookings Table */}
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden border">
+      {/* Desktop Table - Hidden on mobile */}
+      <div className="hidden lg:block bg-white rounded-lg shadow-sm overflow-hidden border">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200 text-sm">
             <thead className="bg-gray-50">
@@ -369,6 +369,86 @@ const BookingManagement: React.FC = () => {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Mobile Card View - Shown on mobile/tablet */}
+      <div className="lg:hidden space-y-4">
+        {filteredBookings.length > 0 ? (
+          filteredBookings.map((b) => {
+            const days = calculateDays(b.startDate, b.endDate);
+            const total = days * (b.vehicle?.dailyRate ?? 0);
+            return (
+              <div key={b._id} className="bg-white rounded-lg shadow-sm border p-4">
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <div className="font-semibold text-gray-900">#{b._id.slice(-6)}</div>
+                    <div className="text-xs text-gray-500">{new Date(b.createdAt).toLocaleDateString()}</div>
+                  </div>
+                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${STATUS_COLORS[b.status]}`}>
+                    {b.status}
+                  </span>
+                </div>
+
+                <div className="space-y-2 text-sm">
+                  <div>
+                    <span className="text-gray-600 font-medium">Client:</span>
+                    <div className="text-gray-900">{b.client.fullName}</div>
+                    <div className="text-xs text-gray-500">{b.client.phone}</div>
+                  </div>
+                  
+                  {b.vehicle && (
+                    <div>
+                      <span className="text-gray-600 font-medium">Vehicle:</span>
+                      <div className="text-gray-900">{b.vehicle.make} {b.vehicle.model}</div>
+                      <div className="text-xs text-gray-500">{b.vehicle.licensePlate}</div>
+                    </div>
+                  )}
+
+                  <div>
+                    <span className="text-gray-600 font-medium">Period:</span>
+                    <div className="text-gray-900">
+                      {new Date(b.startDate).toLocaleDateString()} - {new Date(b.endDate).toLocaleDateString()}
+                    </div>
+                    <div className="text-xs text-gray-500">{days} day{days > 1 && "s"}</div>
+                  </div>
+
+                  <div className="pt-2 border-t">
+                    <span className="text-gray-600 font-medium">Total:</span>
+                    <div className="text-lg font-bold text-gray-900">
+                      KSH {total.toLocaleString("en-KE", { minimumFractionDigits: 2 })}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-2 mt-4 pt-3 border-t">
+                  <button
+                    onClick={() => { setSelectedBooking(b); setShowDetailsModal(true); }}
+                    className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-blue-50 text-blue-600 rounded-md text-sm font-medium hover:bg-blue-100"
+                  >
+                    <Eye className="w-4 h-4" />
+                    View
+                  </button>
+                  <button
+                    onClick={() => handleEdit(b)}
+                    className="flex items-center justify-center px-3 py-2 bg-green-50 text-green-600 rounded-md hover:bg-green-100"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => { setSelectedBooking(b); setShowDeleteConfirm(true); }}
+                    className="flex items-center justify-center px-3 py-2 bg-red-50 text-red-600 rounded-md hover:bg-red-100"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            );
+          })
+        ) : (
+          <div className="text-center py-12 bg-white rounded-lg border">
+            <p className="text-gray-500">No bookings found.</p>
+          </div>
+        )}
       </div>
     </div>
   );
