@@ -66,9 +66,9 @@ function EditClientModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
-        <div className="p-6">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-md my-8">
+        <div className="p-4 sm:p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-bold text-gray-900">Edit Client</h2>
             <button
@@ -288,7 +288,7 @@ export default function ClientManagement() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       {/* Add Client Modal */}
       {showAddModal && (
         <AddClientForm
@@ -310,8 +310,8 @@ export default function ClientManagement() {
 
       {/* Details Modal */}
       {showDetailsModal && selectedClient && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg w-full max-w-md">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-lg w-full max-w-md my-8">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold">Client Details</h3>
@@ -398,8 +398,8 @@ export default function ClientManagement() {
 
       {/* Delete Confirm Modal */}
       {showDeleteConfirm && selectedClient && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-md">
             <div className="text-center">
               <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
                 <Trash2 className="h-6 w-6 text-red-600" />
@@ -429,15 +429,15 @@ export default function ClientManagement() {
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-2">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Client Management</h1>
-          <p className="text-gray-600 mt-1">Manage your client database and accounts</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Client Management</h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">Manage your client database and accounts</p>
         </div>
         <PermissionGuard module="clients" action="create">
           <button
             onClick={() => setShowAddModal(true)}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="flex items-center justify-center w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add Client
@@ -473,8 +473,8 @@ export default function ClientManagement() {
         </div>
       </div>
 
-      {/* User-Friendly Table with Edit icon */}
-      <div className="bg-white shadow-sm rounded-lg overflow-hidden">
+      {/* Desktop Table - Hidden on mobile */}
+      <div className="hidden lg:block bg-white shadow-sm rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -587,6 +587,105 @@ export default function ClientManagement() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Mobile Card View - Shown on mobile/tablet */}
+      <div className="lg:hidden space-y-4">
+        {filteredClients.map((client) => (
+          <div key={client._id} className="bg-white shadow-sm rounded-lg p-4 border border-gray-200">
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-center space-x-3">
+                <div className="flex-shrink-0 h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center">
+                  <span className="text-lg font-medium text-blue-600">
+                    {client.fullName.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold text-gray-900">{client.fullName}</h3>
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                    client.status === 'ACTIVE' 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {client.status}
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center text-gray-600">
+                <Phone className="h-4 w-4 mr-2 text-gray-400" />
+                {client.phone}
+              </div>
+              {client.address && (
+                <div className="flex items-start text-gray-600">
+                  <MapPin className="h-4 w-4 mr-2 text-gray-400 mt-0.5" />
+                  <span className="break-words">{client.address}</span>
+                </div>
+              )}
+              <div className="flex items-center text-gray-600">
+                <CreditCard className="h-4 w-4 mr-2 text-gray-400" />
+                {client.idOrPassport}
+              </div>
+              <div className="text-gray-600">
+                <span className="font-medium">License:</span> {client.licenseNumber}
+              </div>
+              <div className="text-gray-500 text-xs">
+                Joined: {new Date(client.createdAt).toLocaleDateString()}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t border-gray-200">
+              <button
+                onClick={() => {
+                  setSelectedClient(client);
+                  setShowDetailsModal(true);
+                }}
+                className="flex-1 min-w-[80px] flex items-center justify-center px-3 py-2 bg-blue-50 text-blue-600 rounded-md text-sm font-medium hover:bg-blue-100"
+              >
+                View
+              </button>
+              <button
+                onClick={() => handleEditClientClick(client)}
+                className="flex items-center justify-center px-3 py-2 bg-yellow-50 text-yellow-600 rounded-md hover:bg-yellow-100"
+                title="Edit"
+              >
+                <Edit className="h-4 w-4" />
+              </button>
+              {client.status === 'ACTIVE' ? (
+                <PermissionGuard module="clients" action="suspend">
+                  <button
+                    onClick={() => handleStatusChange(client._id, 'SUSPENDED')}
+                    disabled={statusUpdating === client._id}
+                    className="flex items-center justify-center px-3 py-2 bg-orange-50 text-orange-600 rounded-md hover:bg-orange-100 disabled:opacity-50"
+                    title="Suspend"
+                  >
+                    <UserX className="h-4 w-4" />
+                  </button>
+                </PermissionGuard>
+              ) : (
+                <PermissionGuard module="clients" action="activate">
+                  <button
+                    onClick={() => handleStatusChange(client._id, 'ACTIVE')}
+                    disabled={statusUpdating === client._id}
+                    className="flex items-center justify-center px-3 py-2 bg-green-50 text-green-600 rounded-md hover:bg-green-100 disabled:opacity-50"
+                    title="Activate"
+                  >
+                    <UserCheck className="h-4 w-4" />
+                  </button>
+                </PermissionGuard>
+              )}
+              <button
+                onClick={() => handleDeleteClick(client)}
+                className="flex items-center justify-center px-3 py-2 bg-red-50 text-red-600 rounded-md hover:bg-red-100"
+                title="Delete"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
 
       {filteredClients.length === 0 && !loading && (
