@@ -212,15 +212,15 @@ export default function VehicleManagement() {
         </div>
       )}
 
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Vehicle Management</h1>
-          <p className="text-gray-600 mt-1">Manage your fleet and vehicle status easily. Use the tools to search, add, edit, or remove vehicles. Click the icon buttons for quick actions.</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Vehicle Management</h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">Manage your fleet and vehicle status easily. Use the tools to search, add, edit, or remove vehicles.</p>
         </div>
         <PermissionGuard module="vehicles" action="create">
           <button
             onClick={() => setShowAddModal(true)}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow"
+            className="flex items-center justify-center w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow text-sm sm:text-base"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add Vehicle
@@ -257,8 +257,8 @@ export default function VehicleManagement() {
         </div>
       </div>
 
-      {/* Vehicles Table */}
-      <div className="bg-white shadow-sm rounded-lg overflow-hidden">
+      {/* Desktop Table - Hidden on mobile */}
+      <div className="hidden lg:block bg-white shadow-sm rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -404,8 +404,81 @@ export default function VehicleManagement() {
         </div>
       </div>
 
+      {/* Mobile Card View - Shown on mobile/tablet */}
+      <div className="lg:hidden space-y-4">
+        {filteredVehicles.length > 0 ? (
+          filteredVehicles.map((vehicle) => {
+            const statusColor = vehicle.status === 'Available' 
+              ? 'bg-green-100 text-green-800' 
+              : vehicle.status === 'Booked' 
+              ? 'bg-blue-100 text-blue-800' 
+              : 'bg-red-100 text-red-800';
+            
+            return (
+              <div key={vehicle._id} className="bg-white rounded-lg shadow-sm border p-4">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <h3 className="text-base font-semibold text-gray-900">{vehicle.make} {vehicle.model}</h3>
+                    <p className="text-sm text-gray-600">{vehicle.licensePlate}</p>
+                    <p className="text-xs text-gray-500">Year: {vehicle.year} {vehicle.color && `• ${vehicle.color}`}</p>
+                  </div>
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusColor}`}>
+                    {vehicle.status || 'Available'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+                  <div>
+                    <span className="text-gray-600">Date Out:</span>
+                    <div className="text-gray-900">{vehicle.dateOut ? new Date(vehicle.dateOut).toLocaleDateString() : 'N/A'}</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Time Out:</span>
+                    <div className="text-gray-900">{vehicle.timeOut || 'N/A'}</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Date In:</span>
+                    <div className="text-gray-900">{vehicle.dateIn ? new Date(vehicle.dateIn).toLocaleDateString() : 'N/A'}</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Time In:</span>
+                    <div className="text-gray-900">{vehicle.timeIn || 'N/A'}</div>
+                  </div>
+                </div>
+
+                <div className="mb-3 pb-3 border-b">
+                  <span className="text-gray-600 text-sm">Daily Rate:</span>
+                  <div className="text-lg font-bold text-gray-900">KSH {vehicle.dailyRate.toLocaleString()}</div>
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => { setSelectedVehicle(vehicle); setShowDetailsModal(true); }}
+                    className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-blue-50 text-blue-600 rounded-md text-sm font-medium hover:bg-blue-100"
+                  >
+                    View
+                  </button>
+                  <button
+                    onClick={() => { setSelectedVehicle(vehicle); setShowEditModal(true); }}
+                    className="flex items-center justify-center px-3 py-2 bg-green-50 text-green-600 rounded-md hover:bg-green-100"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteClick(vehicle)}
+                    className="flex items-center justify-center px-3 py-2 bg-red-50 text-red-600 rounded-md hover:bg-red-100"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            );
+          })
+        ) : null}
+      </div>
+
       {filteredVehicles.length === 0 && !loading && (
-        <div className="text-center py-12">
+        <div className="text-center py-12 bg-white rounded-lg">
           <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Car className="w-8 h-8 text-gray-400" />
           </div>
