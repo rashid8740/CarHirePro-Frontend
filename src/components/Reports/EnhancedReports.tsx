@@ -164,22 +164,22 @@ export default function EnhancedReports() {
     ];
 
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {kpis.map((kpi, index) => {
           const Icon = kpi.icon;
           return (
-            <div key={index} className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow">
+            <div key={index} className="bg-white p-4 sm:p-6 rounded-lg shadow hover:shadow-lg transition-shadow">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-500">{kpi.title}</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">{kpi.value}</p>
-                  <div className={`flex items-center text-sm mt-2 ${kpi.trendColor}`}>
-                    {(typeof kpi.change === 'number' ? kpi.change : parseFloat(kpi.change)) >= 0 ? <ArrowUp className="w-4 h-4 mr-1" /> : <ArrowDown className="w-4 h-4 mr-1" />}
-                    {typeof kpi.change === 'number' ? kpi.change : parseFloat(kpi.change)}% from last month
+                  <p className="text-xs sm:text-sm font-medium text-gray-500">{kpi.title}</p>
+                  <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1 break-words">{kpi.value}</p>
+                  <div className={`flex items-center text-xs sm:text-sm mt-2 ${kpi.trendColor}`}>
+                    {(typeof kpi.change === 'number' ? kpi.change : parseFloat(kpi.change)) >= 0 ? <ArrowUp className="w-3 h-3 sm:w-4 sm:h-4 mr-1" /> : <ArrowDown className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />}
+                    <span className="truncate">{typeof kpi.change === 'number' ? kpi.change : parseFloat(kpi.change)}% from last month</span>
                   </div>
                 </div>
-                <div className={`p-3 rounded-full ${kpi.color}`}>
-                  <Icon className="w-6 h-6" />
+                <div className={`p-2 sm:p-3 rounded-full ${kpi.color} flex-shrink-0`}>
+                  <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
               </div>
             </div>
@@ -408,10 +408,10 @@ export default function EnhancedReports() {
   }
 
   return (
-    <div className="p-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+    <div className="p-4 sm:p-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Analytics Dashboard</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Analytics Dashboard</h1>
           <p className="text-gray-600 mt-1">
             Real-time insights and performance metrics
           </p>
